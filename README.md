@@ -1,2 +1,2 @@
-# servicenow-validation-agent
-SNOW Validation agent
+ServiceNow Validation Agent
+Streamlit app with dashboard, reminders, escalations and PDF reports.
