@@ -1,4 +1,9 @@
 import streamlit as st
-from service
-st.title("Validation List")
-st.dataframe(pd.DataFrame([{"Validation ID":"VAL001","Status":"Open"}]))
+from servicenow_client import get_validations
+
+def show_validations():
+  st.title("Validations")
+  df = get_validations()
+  st.write("Validations counts:", len(df))
+  st.dataframe(df)
+  
