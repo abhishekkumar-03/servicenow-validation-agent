@@ -27,7 +27,7 @@ def show_dashboard():
 
   st.plotly_chart(
     pie,
-    use_container_width=TRue
+    use_container_width=True
   )
 
   st.subheader("Validation Aging")
