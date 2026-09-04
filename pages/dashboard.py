@@ -3,7 +3,7 @@ import plotly.express as px
 from servicenow_client import get_validations
 
 def show_dashboard():
-  st.title("Validation Dahsboard")
+  st.title("Validation Dashboard")
   df = get_validations()
 
   total = len(df)
