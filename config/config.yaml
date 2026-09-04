@@ -1,0 +1,6 @@
+servicenow:
+  instance: dev12345
+  url: https://dev12345.service-now.com
+  username: svc_validation_bot
+  password: Password@123
+
