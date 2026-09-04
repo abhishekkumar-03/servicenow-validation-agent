@@ -54,13 +54,13 @@ def show_reminders():
         </html>
         """
         if send_email(
-           row["email"]
-           subject,
-           body
-       ):
-           scuccess += 1
-    st.success(
-        f"{success} reminder emails sent."
+             row["email"],
+             subject,
+             body
+         ):
+            success += 1
+         st.success(
+         f"{success} reminder emails sent."
     )
 
 for _, row in failed_df.iterrows():
