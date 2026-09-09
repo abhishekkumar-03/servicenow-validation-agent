@@ -2,242 +2,236 @@ import streamlit as st
 import pandas as pd
 
 
+def get_column(df, target_name):
+    """
+    Find a column regardless of case or extra spaces.
+    """
+
+    for col in df.columns:
+        if col.strip().lower() == target_name.lower():
+            return col
+
+    return None
+
+
 def show_dashboard(df):
-    """
-    Dashboard for Validation Records
-    """
 
     st.title("📊 Validation Dashboard")
 
-    # Clean column names
-    df.columns = df.columns.str.strip()
+    # =====================================
+    # Clean Column Names
+    # =====================================
 
-    # Convert dates
-    df["Validation Start Date"] = pd.to_datetime(
-        df["Validation Start Date"],
-        errors="coerce"
+    df.columns = (
+        df.columns
+        .astype(str)
+        .str.strip()
+        .str.replace("\n", " ", regex=False)
     )
 
-    df["Validation End Date"] = pd.to_datetime(
-        df["Validation End Date"],
-        errors="coerce"
+    # Debug (optional)
+    # st.write(df.columns.tolist())
+
+    # =====================================
+    # Locate Columns Safely
+    # =====================================
+
+    validation_start_col = get_column(
+        df,
+        "Validation Start Date"
     )
 
-    # -----------------------------
+    validation_end_col = get_column(
+        df,
+        "Validation End Date"
+    )
+
+    validator_col = get_column(
+        df,
+        "Validator"
+    )
+
+    environment_col = get_column(
+        df,
+        "Environment"
+    )
+
+    ci_owner_col = get_column(
+        df,
+        "CI Owner"
+    )
+
+    tier_col = get_column(
+        df,
+        "Service Level Tier"
+    )
+
+    number_col = get_column(
+        df,
+        "Number"
+    )
+
+    portfolio_col = get_column(
+        df,
+        "Portfolio Manager"
+    )
+
+    # =====================================
+    # Date Conversions
+    # =====================================
+
+    if validation_start_col:
+        df[validation_start_col] = pd.to_datetime(
+            df[validation_start_col],
+            errors="coerce"
+        )
+
+    if validation_end_col:
+        df[validation_end_col] = pd.to_datetime(
+            df[validation_end_col],
+            errors="coerce"
+        )
+
+    # =====================================
     # KPI Metrics
-    # -----------------------------
+    # =====================================
 
     total_validations = len(df)
 
-    completed_validations = (
-        df["Validation End Date"]
-        .notna()
-        .sum()
-    )
+    completed = 0
+    pending = 0
+    overdue = 0
 
-    pending_validations = (
-        df["Validation End Date"]
-        .isna()
-        .sum()
-    )
+    if validation_end_col:
 
-    unique_validators = (
-        df["Validator"]
-        .nunique()
-    )
+        completed = (
+            df[validation_end_col]
+            .notna()
+            .sum()
+        )
 
-    overdue_validations = len(
-        df[
-            (df["Validation End Date"].isna())
-            &
-            (
-                df["Validation Start Date"]
-                <
-                pd.Timestamp.today()
-                - pd.Timedelta(days=7)
-            )
-        ]
-    )
+        pending = (
+            df[validation_end_col]
+            .isna()
+            .sum()
+        )
+
+    if validation_start_col and validation_end_col:
+
+        overdue = len(
+            df[
+                (df[validation_end_col].isna())
+                &
+                (
+                    df[validation_start_col]
+                    <
+                    (
+                        pd.Timestamp.today()
+                        -
+                        pd.Timedelta(days=7)
+                    )
+                )
+            ]
+        )
+
+    validators = 0
+
+    if validator_col:
+        validators = df[validator_col].nunique()
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
     col1.metric(
-        "Total Validations",
+        "Total",
         total_validations
     )
 
     col2.metric(
         "Completed",
-        completed_validations
+        completed
     )
 
     col3.metric(
         "Pending",
-        pending_validations
+        pending
     )
 
     col4.metric(
         "Validators",
-        unique_validators
+        validators
     )
 
     col5.metric(
         "Overdue",
-        overdue_validations
+        overdue
     )
 
     st.divider()
 
-    # -----------------------------
+    # =====================================
     # Environment Summary
-    # -----------------------------
+    # =====================================
 
-    st.subheader("🌎 Validations by Environment")
+    st.subheader("🌎 Environment Distribution")
 
-    env_summary = (
-        df["Environment"]
-        .value_counts()
-        .reset_index()
-    )
+    if environment_col:
 
-    env_summary.columns = [
-        "Environment",
-        "Count"
-    ]
+        env_summary = (
+            df[environment_col]
+            .fillna("Unknown")
+            .value_counts()
+            .reset_index()
+        )
 
-    st.bar_chart(
-        env_summary.set_index("Environment")
-    )
-
-    # -----------------------------
-    # Service Level Tier
-    # -----------------------------
-
-    st.subheader("🏆 Service Level Tier Distribution")
-
-    tier_summary = (
-        df["Service Level Tier"]
-        .value_counts()
-        .reset_index()
-    )
-
-    tier_summary.columns = [
-        "Tier",
-        "Count"
-    ]
-
-    st.bar_chart(
-        tier_summary.set_index("Tier")
-    )
-
-    # -----------------------------
-    # Validator Summary
-    # -----------------------------
-
-    st.subheader("👤 Top Validators")
-
-    validator_summary = (
-        df["Validator"]
-        .value_counts()
-        .head(10)
-        .reset_index()
-    )
-
-    validator_summary.columns = [
-        "Validator",
-        "Validation Count"
-    ]
-
-    st.dataframe(
-        validator_summary,
-        use_container_width=True
-    )
-
-    # -----------------------------
-    # CI Owner Summary
-    # -----------------------------
-
-    st.subheader("🏢 Top CI Owners")
-
-    owner_summary = (
-        df["CI Owner"]
-        .value_counts()
-        .head(10)
-        .reset_index()
-    )
-
-    owner_summary.columns = [
-        "CI Owner",
-        "Validation Count"
-    ]
-
-    st.dataframe(
-        owner_summary,
-        use_container_width=True
-    )
-
-    # -----------------------------
-    # Portfolio Summary
-    # -----------------------------
-
-    st.subheader("💼 Portfolio Managers")
-
-    portfolio_summary = (
-        df["Portfolio Manager"]
-        .value_counts()
-        .reset_index()
-    )
-
-    portfolio_summary.columns = [
-        "Portfolio Manager",
-        "Count"
-    ]
-
-    st.dataframe(
-        portfolio_summary,
-        use_container_width=True
-    )
-
-    # -----------------------------
-    # Raw Data
-    # -----------------------------
-
-    st.subheader("📋 Validation Records")
-
-    search = st.text_input(
-        "Search Validation Number"
-    )
-
-    filtered_df = df.copy()
-
-    if search:
-        filtered_df = filtered_df[
-            filtered_df["Number"]
-            .astype(str)
-            .str.contains(
-                search,
-                case=False,
-                na=False
-            )
+        env_summary.columns = [
+            "Environment",
+            "Count"
         ]
 
-    st.dataframe(
-        filtered_df,
-        use_container_width=True,
-        height=500
+        st.bar_chart(
+            env_summary.set_index(
+                "Environment"
+            )
+        )
+
+    else:
+
+        st.warning(
+            "Environment column not found."
+        )
+
+    # =====================================
+    # Service Level Tier
+    # =====================================
+
+    st.subheader(
+        "🏆 Service Level Tier Distribution"
     )
 
-    # -----------------------------
-    # Download CSV
-    # -----------------------------
+    if tier_col:
 
-    csv = filtered_df.to_csv(
-        index=False
-    )
+        tier_summary = (
+            df[tier_col]
+            .fillna("Unknown")
+            .value_counts()
+            .reset_index()
+        )
 
-    st.download_button(
-        label="⬇ Download CSV",
-        data=csv,
-        file_name="validation_report.csv",
-        mime="text/csv"
-    )
+        tier_summary.columns = [
+            "Tier",
+            "Count"
+        ]
+
+        st.bar_chart(
+            tier_summary.set_index(
+                "Tier"
+            )
+        )
+
+    else:
+
+        st.warning(
+            "Service Level Tier column not found."
+        )
+
+    # =========
