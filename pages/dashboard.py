@@ -3,14 +3,9 @@ import pandas as pd
 
 
 def get_column(df, target_name):
-    """
-    Find a column regardless of case or extra spaces.
-    """
-
     for col in df.columns:
         if col.strip().lower() == target_name.lower():
             return col
-
     return None
 
 
@@ -18,68 +13,43 @@ def show_dashboard(df):
 
     st.title("📊 Validation Dashboard")
 
-    # =====================================
-    # Clean Column Names
-    # =====================================
-
+    # Clean column names
     df.columns = (
-        df.columns
-        .astype(str)
+        df.columns.astype(str)
         .str.strip()
         .str.replace("\n", " ", regex=False)
     )
 
-    # Debug (optional)
-    # st.write(df.columns.tolist())
-
-    # =====================================
-    # Locate Columns Safely
-    # =====================================
-
+    # Locate columns safely
     validation_start_col = get_column(
-        df,
-        "Validation Start Date"
+        df, "Validation Start Date"
     )
 
     validation_end_col = get_column(
-        df,
-        "Validation End Date"
+        df, "Validation End Date"
     )
 
     validator_col = get_column(
-        df,
-        "Validator"
-    )
-
-    environment_col = get_column(
-        df,
-        "Environment"
+        df, "Validator"
     )
 
     ci_owner_col = get_column(
-        df,
-        "CI Owner"
+        df, "CI Owner"
     )
 
     tier_col = get_column(
-        df,
-        "Service Level Tier"
-    )
-
-    number_col = get_column(
-        df,
-        "Number"
+        df, "Service Level Tier"
     )
 
     portfolio_col = get_column(
-        df,
-        "Portfolio Manager"
+        df, "Portfolio Manager"
     )
 
-    # =====================================
-    # Date Conversions
-    # =====================================
+    number_col = get_column(
+        df, "Number"
+    )
 
+    # Date conversion
     if validation_start_col:
         df[validation_start_col] = pd.to_datetime(
             df[validation_start_col],
@@ -92,18 +62,14 @@ def show_dashboard(df):
             errors="coerce"
         )
 
-    # =====================================
     # KPI Metrics
-    # =====================================
-
-    total_validations = len(df)
+    total = len(df)
 
     completed = 0
     pending = 0
     overdue = 0
 
     if validation_end_col:
-
         completed = (
             df[validation_end_col]
             .notna()
@@ -117,7 +83,6 @@ def show_dashboard(df):
         )
 
     if validation_start_col and validation_end_col:
-
         overdue = len(
             df[
                 (df[validation_end_col].isna())
@@ -127,82 +92,29 @@ def show_dashboard(df):
                     <
                     (
                         pd.Timestamp.today()
-                        -
-                        pd.Timedelta(days=7)
+                        - pd.Timedelta(days=7)
                     )
                 )
             ]
         )
 
-    validators = 0
-
-    if validator_col:
-        validators = df[validator_col].nunique()
+    validator_count = (
+        df[validator_col].nunique()
+        if validator_col
+        else 0
+    )
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
-    col1.metric(
-        "Total",
-        total_validations
-    )
-
-    col2.metric(
-        "Completed",
-        completed
-    )
-
-    col3.metric(
-        "Pending",
-        pending
-    )
-
-    col4.metric(
-        "Validators",
-        validators
-    )
-
-    col5.metric(
-        "Overdue",
-        overdue
-    )
+    col1.metric("Total", total)
+    col2.metric("Completed", completed)
+    col3.metric("Pending", pending)
+    col4.metric("Validators", validator_count)
+    col5.metric("Overdue", overdue)
 
     st.divider()
 
-    # =====================================
-    # Environment Summary
-    # =====================================
-
-    st.subheader("🌎 Environment Distribution")
-
-    if environment_col:
-
-        env_summary = (
-            df[environment_col]
-            .fillna("Unknown")
-            .value_counts()
-            .reset_index()
-        )
-
-        env_summary.columns = [
-            "Environment",
-            "Count"
-        ]
-
-        st.bar_chart(
-            env_summary.set_index(
-                "Environment"
-            )
-        )
-
-    else:
-
-        st.warning(
-            "Environment column not found."
-        )
-
-    # =====================================
-    # Service Level Tier
-    # =====================================
+    # Service Level Tier Distribution
 
     st.subheader(
         "🏆 Service Level Tier Distribution"
@@ -223,15 +135,21 @@ def show_dashboard(df):
         ]
 
         st.bar_chart(
-            tier_summary.set_index(
-                "Tier"
-            )
+            tier_summary.set_index("Tier")
         )
 
-    else:
+    # Top Validators
 
-        st.warning(
-            "Service Level Tier column not found."
+    st.subheader("👤 Top Validators")
+
+    if validator_col:
+
+        validator_summary = (
+            df[validator_col]
+            .fillna("Unknown")
+            .value_counts()
+            .head(10)
+            .reset_index()
         )
 
-    # =========
+        validator
