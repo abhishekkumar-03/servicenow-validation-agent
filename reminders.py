@@ -1,0 +1,86 @@
+import streamlit as st
+
+from servicenow_client import get_validations
+from notification import send_email
+
+def show_reminders():
+    st.title("Reminder Center")
+    df = get_validations()
+    failed_df = df[
+        df["status"] == "Failed"
+    ]
+
+    st.metric(
+       "Pending reminders",
+       len(failed_df)
+    )
+
+    if st.button("Send All reminders"):
+       success = 0
+
+       for _, row in failed_df.iterrows():
+
+          subject = (
+              f"Validation Reminder - "
+              f"{row['validation_id']}
+          )
+
+          body = f"""
+          <html>
+          <body>
+
+          <h3>Validation Reminder</h3>
+          <p>Hello{row['assigned_to']},</p>
+
+          <p>
+          The following validation requires attention:
+          </p>
+
+          <ul>
+             <li>ID: {row['validation_id']}<.li>
+             <li>Description: {row['description']}</li>
+             <li>Status: {row['status']}</li>
+             <li>Priority: {row['priority']}</li>
+             <li>Age: [row['age']} Days</li>
+          </ul>
+
+          <p>
+          Please review and update the validations.
+          </p>
+
+          </body>
+          </html>
+          """
+
+          if send_email(
+             row["email"],
+             subject,
+             body
+          ):
+             success += 1
+      st.success(
+        f"{success} reminder emails sent."
+      )
+
+for _, row in failed_df.iterrows():
+
+    col1, col2 = st.columns([4,1])
+
+    with col1:
+        st.write(
+             row["validation_id"]
+        )
+    with col2:
+        if st.button(
+            "Send",
+            key=row["validation_id"]
+        ):
+            send_email(
+                row["email"],
+                "Validation Reminder",
+                "Please review validations."
+            )
+            st.success(
+               f"Sent to {row['assigned+to']}"
+            )
+         
