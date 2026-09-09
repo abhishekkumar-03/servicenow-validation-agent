@@ -8,7 +8,7 @@ def send_email(recipient, subject, body):
 
       msg = MIMEText(body, "html")
       msg["Subject"] = subject
-      msg["From" = SMTP_USER
+      msg["From"] = SMTP_USER
       msg["To"] = recipient
       
       server = smtplib.SMTP(
