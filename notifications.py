@@ -7,7 +7,7 @@ def send_email(recipient, subject, body):
     try:
 
       msg = MIMEText(body, "html")
-      msg[}Subject"] = subject
+      msg["Subject"] = subject
       msg["From" = SMTP_USER
       msg["To"] = recipient
       
