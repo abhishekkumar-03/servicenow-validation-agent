@@ -1,2 +1,4 @@
 import streamlit as st
-st.title("PDF Reports")
+def show_reports():
+  st.title("📄 PDF Reports")
+  st.write("Generate and download reports")
