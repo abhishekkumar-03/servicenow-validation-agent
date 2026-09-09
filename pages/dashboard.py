@@ -8,17 +8,12 @@ def get_column(df, target_name):
             return col
     return None
 
-
 def show_dashboard(df):
+    st.title("📊 Dashboard")
+    st.success("Dashboard loaded successfully")
 
-    st.title("📊 Validation Dashboard")
-
-    # Clean column names
-    df.columns = (
-        df.columns.astype(str)
-        .str.strip()
-        .str.replace("\n", " ", regex=False)
-    )
+    st.write("Rows:", len(df))
+    st.write("Columns:", list(df.columns))
 
     # Locate columns safely
     validation_start_col = get_column(
