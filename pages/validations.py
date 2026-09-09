@@ -35,7 +35,7 @@ def show_validations(df):
     with col1:
 
         environments = ["All"] + sorted(
-            filtered_df["Environment"]
+            filtered_df["Validation Environment"]
             .dropna()
             .unique()
             .tolist()
@@ -65,7 +65,7 @@ def show_validations(df):
     if selected_env != "All":
 
         filtered_df = filtered_df[
-            filtered_df["Environment"]
+            filtered_df["Validation Environment"]
             == selected_env
         ]
 
@@ -94,7 +94,7 @@ def show_validations(df):
 
     col3.metric(
         "Unique Environments",
-        filtered_df["Environment"].nunique()
+        filtered_df["Validation Environment"].nunique()
     )
 
     st.divider()
