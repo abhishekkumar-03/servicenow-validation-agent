@@ -27,7 +27,7 @@ def apply_theme():
      background: linear-gradient(
          180deg,
          #c00000 0%,
-         #8b0000 100%
+         #add8e6 100%
     );
   }
 
